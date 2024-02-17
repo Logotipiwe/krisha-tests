@@ -47,8 +47,11 @@ func ClearAps() {
 }
 
 func createMockAp(bean MockApBean) *model.Ap {
-	photo := &model.Photo{
-		Src: "https://avatars.mds.yandex.net/get-yapic/47747/0z25q4qByPbPgEtCWM5KXBA-1/islands-200",
+	var photos []*model.Photo
+	for _, image := range bean.Images {
+		photos = append(photos, &model.Photo{
+			Src: image,
+		})
 	}
 	return &model.Ap{
 		ID:                      bean.Id,
@@ -59,7 +62,7 @@ func createMockAp(bean MockApBean) *model.Ap {
 		IsOnMap:                 false,
 		HasPrice:                false,
 		Price:                   bean.Price,
-		Photos:                  []*model.Photo{photo, photo, photo},
+		Photos:                  photos,
 		HasPackages:             false,
 		Title:                   bean.Title,
 		Addresstitle:            "",

@@ -41,9 +41,10 @@ func InitTestController() *Controller {
 		aps_mock.ClearAps()
 		for i := 1; i <= n; i++ {
 			bean := aps_mock.MockApBean{
-				Id:    int64(i),
-				Title: "title " + strconv.Itoa(i),
-				Price: int64(100 * i),
+				Id:     int64(i),
+				Title:  "title " + strconv.Itoa(i),
+				Price:  int64(100 * i),
+				Images: []string{strconv.Itoa(i), strconv.Itoa(i + 1)},
 			}
 			aps_mock.AddMockAp(bean)
 			fmt.Printf("Added mock ap. %v\n", bean)

@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-func AddAp(id int64, title string, price int) error {
-	return addAp(id, title, price)
+func AddAp(id int64, title string, price int, images []string) error {
+	return addAp(id, title, price, images)
 }
 
 func CreateNAps(n int) (int, error) {
@@ -38,12 +38,13 @@ func clearAps() error {
 	return err
 }
 
-func addAp(id int64, title string, price int) error {
+func addAp(id int64, title string, price int, images []string) error {
 	fmt.Printf("Creating mock ap with title %v and price %v\n", title, price)
 	body := make(map[string]any)
 	body["id"] = id
 	body["title"] = title
 	body["price"] = price
+	body["images"] = images
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(body)
