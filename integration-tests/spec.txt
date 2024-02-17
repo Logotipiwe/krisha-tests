@@ -1,0 +1,5 @@
+ENV:
+OWNER_TG_CHAT_ID={{CHAT_ID}};
+TARGET_HOST=http://localhost:83;
+APS_MOCK_HOST=http://localhost:84;
+
