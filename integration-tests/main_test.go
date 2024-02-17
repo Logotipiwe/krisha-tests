@@ -326,6 +326,10 @@ func TestKek(t *testing.T) {
 			assert.Equal(t, answers[0].Text, `Новая квартира: https://krisha.kz/a/show/191`)
 			assert.Equal(t, answers[0].Images, []string{"1", "2"})
 		})
+		//TODO limit exceeds
+		//TODO deny when parser works
+		//TODO change limits
+		//TODO check auto limits
 	})
 	fmt.Println()
 }
