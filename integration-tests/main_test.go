@@ -303,6 +303,29 @@ func TestKek(t *testing.T) {
 			assert.Equal(t, len(answers), 1)
 			assert.Equal(t, answers[0].Text, `Парсер остановлен`)
 		})
+		t.Run("Notifying about one new ap for user 1 with rights", func(t *testing.T) {
+			cleanupBeforeTest(t)
+
+			client.SendUpdateFromOwner("/grant")
+			client.SendUpdateFromOwner("1 200")
+			client.GetAnswers()
+			client.CreateNAps(190)
+
+			err := client.SendUpdate(1, "https://krisha.kz/map/arenda/kvartiry/almaty/?test=params")
+			assert.Nil(t, err)
+			time.Sleep(1 * time.Second)
+			answers, err := client.GetAnswers()
+			assert.Equal(t, answers[0].Text, `Фильтр успешно установлен и парсер запущен`)
+
+			err = client.AddAp(191, "title 191", 19100, []string{"1", "2"})
+			assert.Nil(t, err)
+			time.Sleep(3 * time.Second)
+			answers, err = client.GetAnswers()
+			assert.Nil(t, err)
+			assert.Equal(t, len(answers), 1)
+			assert.Equal(t, answers[0].Text, `Новая квартира: https://krisha.kz/a/show/191`)
+			assert.Equal(t, answers[0].Images, []string{"1", "2"})
+		})
 	})
 	fmt.Println()
 }
