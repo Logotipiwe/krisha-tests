@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test dc all" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="krisha_tests" />
+    <working_directory value="$PROJECT_DIR$/integration-tests" />
+    <envs>
+      <env name="APS_MOCK_HOST" value="http://localhost:84" />
+      <env name="OWNER_TG_CHAT_ID" value="214583870" />
+      <env name="TARGET_HOST" value="http://localhost:83" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="integration-tests" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/main_test.go|$PROJECT_DIR$/integration-tests/main_test.go" />
+    <framework value="gotest" />
+    <method v="2" />
+  </configuration>
+</component>

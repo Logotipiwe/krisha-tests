@@ -13,7 +13,7 @@ import (
 
 func SendUpdate(chatID int64, text string) error {
 	b := []byte(fmt.Sprintf(`{"ChatID":%v,"Text":"%v"}`, chatID, text))
-	fmt.Printf("Sending `%v` from chat %v", text, chatID)
+	fmt.Printf("Sending `%v` from chat %v\n", text, chatID)
 	request, _ := http.NewRequest("POST", utils.GetTargetHost()+"/tests/sendMessage", bytes.NewBuffer(b))
 	client := http.Client{}
 	client.Timeout = 2 * time.Second
@@ -58,8 +58,26 @@ func GetAnswers() ([]model.SentMockMessage, error) {
 	var answers []model.SentMockMessage
 	body, err := io.ReadAll(response.Body)
 	err = json.Unmarshal(body, &answers)
-	fmt.Printf("Got messages %v", answers)
+	fmt.Printf("Got messages %v\n", answers)
 	return answers, err
+}
+
+func GetAnswersToOwnerChat() ([]model.SentMockMessage, error) {
+	return GetAnswersToChat(utils.GetOwnerChatID())
+}
+
+func GetAnswersToChat(chatID int64) ([]model.SentMockMessage, error) {
+	answers, err := GetAnswers()
+	if err != nil {
+		return answers, err
+	}
+	var result []model.SentMockMessage
+	for _, m := range answers {
+		if m.ChatID == chatID {
+			result = append(result, m)
+		}
+	}
+	return result, err
 }
 
 func ResetDB() error {
@@ -67,6 +85,19 @@ func ResetDB() error {
 	request, _ := http.NewRequest("POST", utils.GetTargetHost()+"/tests/reset", nil)
 	client := http.Client{}
 	client.Timeout = 5 * time.Second
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	return err
+}
+
+func SetAutoGrantLimit(n string) error {
+	fmt.Println("Setting AUTO_GRANT_LIMIT...")
+	request, _ := http.NewRequest("POST", utils.GetTargetHost()+"/tests/set-auto-grant-limit?n="+n, nil)
+	client := http.Client{}
+	client.Timeout = 2 * time.Second
 	response, err := client.Do(request)
 	if err != nil {
 		return err

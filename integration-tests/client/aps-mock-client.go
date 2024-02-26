@@ -23,7 +23,7 @@ func ClearAps() error {
 }
 
 func clearAps() error {
-	fmt.Println("Clearing mock aps...")
+	fmt.Println("Clearing mock aps...\n")
 	request, _ := http.NewRequest("POST", utils.GetApsMockHost()+"/clear-aps", nil)
 	client := http.Client{}
 	client.Timeout = 2 * time.Second
