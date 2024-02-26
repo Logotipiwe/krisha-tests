@@ -13,7 +13,7 @@
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/main_test.go|$PROJECT_DIR$/integration-tests/main_test.go" />
     <framework value="gotest" />
-    <pattern value="^\QTestKek\E$/^\QFor_users\E$/^\Qstart_for_user_1_without_rights\E$" />
+    <pattern value="^\QTestKek\E$/^\QFor_users_with_auto_grant\E$/^\QExplicit_grant_accounted_instead_of_auto_(allow)_(autogrant_-_\E$/^\Qstart_-_explicit_grant)\E$" />
     <method v="2" />
   </configuration>
 </component>

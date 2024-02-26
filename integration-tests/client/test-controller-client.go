@@ -16,7 +16,7 @@ func SendUpdate(chatID int64, text string) error {
 	fmt.Printf("Sending `%v` from chat %v\n", text, chatID)
 	request, _ := http.NewRequest("POST", utils.GetTargetHost()+"/tests/sendMessage", bytes.NewBuffer(b))
 	client := http.Client{}
-	client.Timeout = 2 * time.Second
+	//client.Timeout = 2 * time.Second
 	response, err := client.Do(request)
 	if err != nil {
 		return err
