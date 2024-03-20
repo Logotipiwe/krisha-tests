@@ -105,3 +105,32 @@ func SetAutoGrantLimit(n string) error {
 	defer response.Body.Close()
 	return err
 }
+
+// SetEnv TODO do with saving in config server
+func SetEnv(key, value string) error {
+	fmt.Println("Setting env " + key + " to value " + value)
+	request, _ := http.NewRequest("POST", utils.GetTargetHost()+"/tests/set-env?key="+key+"&value="+value, nil)
+	client := http.Client{}
+	client.Timeout = 2 * time.Second
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	return err
+}
+
+func GetEnv(key string) (string, error) {
+	fmt.Println("Getting env " + key)
+	request, _ := http.NewRequest("GET", utils.GetTargetHost()+"/tests/get-env?key="+key, nil)
+	client := http.Client{}
+	client.Timeout = 2 * time.Second
+	response, err := client.Do(request)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+	var answer []byte
+	_, err = response.Body.Read(answer)
+	return string(answer), err
+}

@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+const (
+	sellHousePath = "/map/prodazha/doma-dachi/almaty/"
+	newApText     = "Новое объявление"
+)
+
 func cleanupBeforeTest(t *testing.T) {
 	//enabled, err := client.IsTargetTestsEnabled()
 	//assert.Nil(t, enabled)
@@ -24,7 +29,7 @@ func cleanupBeforeTest(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 }
 
-func TestKek(t *testing.T) {
+func TestParser(t *testing.T) {
 	ownerChatID := utils.GetOwnerChatID()
 	if ownerChatID == 0 {
 		panic("Owner chat id is not set. Provide it from env.")
@@ -82,10 +87,12 @@ func TestKek(t *testing.T) {
 		})
 		t.Run("/chats for admin", func(t *testing.T) {
 			cleanupBeforeTest(t)
+			client.SetAutoGrantLimit("1")
 			client.SendUpdate(1, "/start")
 			client.SendUpdate(10, "/start")
 			client.SendUpdate(100, "/start")
 			client.SendUpdate(1000, "/start")
+			sleepForNotification() //TODO speed up just db log
 			client.SendUpdateFromOwner("/chats")
 			answers, err := client.GetAnswersToOwnerChat()
 			assert.Nil(t, err)
@@ -155,7 +162,75 @@ func TestKek(t *testing.T) {
 			answers, err = client.GetAnswers()
 			assert.Nil(t, err)
 			assert.Equal(t, len(answers), 1)
-			assert.Equal(t, answers[0].Text, `Новая квартира: https://krisha.kz/a/show/15`)
+			assert.Equal(t, answers[0].Text, newApText+`: https://krisha.kz/a/show/15`)
+			assert.Equal(t, answers[0].Images, []string{"1", "11"})
+		})
+		t.Run("Notifying about selling house", func(t *testing.T) {
+			cleanupBeforeTest(t)
+			status, err := client.CreateNApsByPath(14, sellHousePath)
+			assert.Nil(t, err)
+			assert.Equal(t, status, 201)
+			err = client.SendUpdateFromOwner("https://krisha.kz/map/prodazha/doma-dachi/almaty/?test=params")
+			assert.Nil(t, err)
+			sleepForNotification()
+			answers, err := client.GetAnswers()
+			assert.Nil(t, err)
+			assert.NotEmpty(t, answers)
+			assert.Equal(t, len(answers), 4)
+
+			err = client.AddApByPath(15, "title 15", 1500, []string{"1", "11"}, sellHousePath)
+			assert.Nil(t, err)
+			sleepForNotification()
+
+			answers, err = client.GetAnswers()
+			assert.Nil(t, err)
+			assert.Equal(t, len(answers), 1)
+			assert.Equal(t, answers[0].Text, newApText+`: https://krisha.kz/a/show/15`)
+			assert.Equal(t, answers[0].Images, []string{"1", "11"})
+		})
+		t.Run("Not notifying about new ap in other path", func(t *testing.T) {
+			cleanupBeforeTest(t)
+			status, err := client.CreateNApsByPath(14, sellHousePath)
+			assert.Nil(t, err)
+			assert.Equal(t, status, 201)
+			err = client.SendUpdateFromOwner("https://krisha.kz/map/prodazha/doma-dachi/almaty/?test=params")
+			assert.Nil(t, err)
+			sleepForNotification()
+			answers, err := client.GetAnswers()
+			assert.Nil(t, err)
+			assert.NotEmpty(t, answers)
+			assert.Equal(t, len(answers), 4)
+
+			err = client.AddApByPath(15, "title 15", 1500, []string{"1", "11"}, sellHousePath+"kek/")
+			assert.Nil(t, err)
+			sleepForNotification()
+
+			answers, err = client.GetAnswers()
+			assert.Nil(t, err)
+			assert.Empty(t, answers)
+		})
+		t.Run("Notifying about exactly one new ap when several added in different paths", func(t *testing.T) {
+			cleanupBeforeTest(t)
+			status, err := client.CreateNApsByPath(14, sellHousePath)
+			assert.Nil(t, err)
+			assert.Equal(t, status, 201)
+			err = client.SendUpdateFromOwner("https://krisha.kz/map/prodazha/doma-dachi/almaty/?test=params")
+			assert.Nil(t, err)
+			sleepForNotification()
+			answers, err := client.GetAnswers()
+			assert.Nil(t, err)
+			assert.NotEmpty(t, answers)
+			assert.Equal(t, len(answers), 4)
+
+			err = client.AddApByPath(16, "title 16", 1600, []string{"1", "11"}, sellHousePath+"kek/")
+			err = client.AddApByPath(15, "title 15", 1500, []string{"1", "11"}, sellHousePath)
+			assert.Nil(t, err)
+			sleepForNotification()
+
+			answers, err = client.GetAnswers()
+			assert.Nil(t, err)
+			assert.Equal(t, len(answers), 1)
+			assert.Equal(t, answers[0].Text, newApText+`: https://krisha.kz/a/show/15`)
 			assert.Equal(t, answers[0].Images, []string{"1", "11"})
 		})
 		t.Run("Granting rights with incorrect input", func(t *testing.T) {
@@ -227,7 +302,7 @@ func TestKek(t *testing.T) {
 			assert.Nil(t, err)
 			answers, err = client.GetAnswers()
 			assert.Equal(t, len(answers), 1)
-			assert.Equal(t, answers[0].Text, "У этого чата и так нет доступа. Спасибо")
+			assert.Equal(t, "У этого чата и так нет доступа. Спасибо", answers[0].Text)
 			assert.Nil(t, err)
 		})
 		t.Run("Admin dashboard empty", func(t *testing.T) {
@@ -282,6 +357,7 @@ func TestKek(t *testing.T) {
 		t.Run("Admin dashboard only active chats", func(t *testing.T) {
 			cleanupBeforeTest(t)
 			client.SetAutoGrantLimit("54")
+			client.CreateNAps(1)
 			client.SendUpdate(10, "https://krisha.kz/map/arenda/kvartiry/almaty/?test=params")
 			client.SendUpdate(11, "https://krisha.kz/map/arenda/kvartiry/almaty/?test=params")
 			client.SendUpdate(12, "https://krisha.kz/map/arenda/kvartiry/almaty/?test=params")
@@ -447,7 +523,7 @@ func TestKek(t *testing.T) {
 			answers, err = client.GetAnswers()
 			assert.Nil(t, err)
 			assert.Equal(t, len(answers), 1)
-			assert.Equal(t, answers[0].Text, `Новая квартира: https://krisha.kz/a/show/191`)
+			assert.Equal(t, answers[0].Text, newApText+`: https://krisha.kz/a/show/191`)
 			assert.Equal(t, answers[0].Images, []string{"1", "2"})
 		})
 		t.Run("Exceed limit for user 1 with rights", func(t *testing.T) {
@@ -561,6 +637,9 @@ func TestKek(t *testing.T) {
 			client.GetAnswers()
 			client.SendUpdateFromOwner("/deny")
 			client.SendUpdateFromOwner("1")
+			sleepForNotification() //TODO speed up just db log
+			sleepForNotification() //TODO speed up just db log
+			sleepForNotification() //TODO speed up just db log
 			answers, err := client.GetAnswersToChat(1)
 			assert.Nil(t, err)
 			assert.Equal(t, 1, len(answers))
@@ -700,7 +779,7 @@ func TestKek(t *testing.T) {
 			answers, err := client.GetAnswers()
 			assert.Nil(t, err)
 			assert.Equal(t, 1, len(answers))
-			assert.Equal(t, "Новая квартира: https://krisha.kz/a/show/5", answers[0].Text)
+			assert.Equal(t, newApText+": https://krisha.kz/a/show/5", answers[0].Text)
 		})
 		t.Run("Explicit grant continue work when disable auto grant (explicit first)", func(t *testing.T) {
 			cleanupBeforeTest(t)
@@ -719,7 +798,7 @@ func TestKek(t *testing.T) {
 			answers, err := client.GetAnswers()
 			assert.Nil(t, err)
 			assert.Equal(t, 1, len(answers))
-			assert.Equal(t, "Новая квартира: https://krisha.kz/a/show/5", answers[0].Text)
+			assert.Equal(t, newApText+": https://krisha.kz/a/show/5", answers[0].Text)
 		})
 		t.Run("Auto stop when limit changed", func(t *testing.T) {
 			cleanupBeforeTest(t)

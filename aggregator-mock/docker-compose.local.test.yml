@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  krisha_mock_api:
+    container_name: krisha_mock_api
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-debug
+    networks:
+      - dc-net
+    ports:
+      - 84:8084
+      - 40000:40000
+networks:
+  dc-net:
+    external: true

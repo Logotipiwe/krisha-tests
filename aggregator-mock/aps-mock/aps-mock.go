@@ -1,49 +1,69 @@
 package aps_mock
 
 import (
+	"errors"
 	"github.com/Logotipiwe/krisha_model/model"
 	"strconv"
 )
 
 var (
-	EmulatedAps   = make([]*model.Ap, 0)
-	Ids           = make(map[int64]bool)
-	EmulatedCount int
+	EmulatedApsByPath = make(map[string][]*model.Ap)
+	Ids               = make(map[int64]bool)
 )
 
 const pageSize = 20
 
-func GetApsByPage(pageNum int) map[string]*model.Ap {
-	allAps := EmulatedAps
-	if len(allAps) <= ((pageNum - 1) * pageSize) {
-		return map[string]*model.Ap{}
+func GetApsByPageAndPath(subPath string, pageNum int) (*map[string]*model.Ap, error) {
+	apsOfPath, has := EmulatedApsByPath[subPath]
+	if !has {
+		return nil, getNonExistPathErr(subPath)
+	}
+
+	if len(apsOfPath) <= ((pageNum - 1) * pageSize) {
+		m := map[string]*model.Ap{}
+		return &m, nil
 	}
 	firstIndex := (pageNum - 1) * pageSize
 	lastIndex := firstIndex + pageSize
-	if lastIndex > (len(EmulatedAps) - 1) {
-		lastIndex = len(EmulatedAps)
+	if lastIndex > (len(apsOfPath) - 1) {
+		lastIndex = len(apsOfPath)
 	}
-	page := allAps[firstIndex:lastIndex]
+	page := apsOfPath[firstIndex:lastIndex]
 	pageMap := make(map[string]*model.Ap)
 	for _, ap := range page {
 		pageMap[strconv.FormatInt(ap.ID, 10)] = ap
 	}
-	return pageMap
+	return &pageMap, nil
 }
 
-func AddMockAp(bean MockApBean) {
+func GetApsCount(subPath string) (int, error) {
+	aps, has := EmulatedApsByPath[subPath]
+	if !has {
+		return 0, getNonExistPathErr(subPath)
+	}
+	return len(aps), nil
+}
+
+func getNonExistPathErr(subPath string) error {
+	return errors.New("tried to get aps count from non-existing path: " + subPath)
+}
+
+func AddMockAp(subPath string, bean MockApBean) {
 	if _, has := Ids[bean.Id]; has {
 		return
 	}
-	EmulatedAps = append(EmulatedAps, createMockAp(bean))
+	_, has := EmulatedApsByPath[subPath]
+	if !has {
+		EmulatedApsByPath[subPath] = make([]*model.Ap, 0)
+	}
+	apsOfPathNew := append(EmulatedApsByPath[subPath], createMockAp(bean))
+	EmulatedApsByPath[subPath] = apsOfPathNew
 	Ids[bean.Id] = true
-	EmulatedCount++
 }
 
 func ClearAps() {
-	EmulatedAps = make([]*model.Ap, 0)
+	EmulatedApsByPath = make(map[string][]*model.Ap)
 	Ids = make(map[int64]bool)
-	EmulatedCount = 0
 }
 
 func createMockAp(bean MockApBean) *model.Ap {

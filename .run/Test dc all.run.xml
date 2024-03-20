@@ -12,6 +12,8 @@
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/main_test.go|$PROJECT_DIR$/integration-tests/main_test.go" />
     <framework value="gotest" />
-    <method v="2" />
+    <method v="2">
+      <option name="GoBeforeRunTask" command="build" />
+    </method>
   </configuration>
 </component>

@@ -11,11 +11,19 @@ import (
 )
 
 func AddAp(id int64, title string, price int, images []string) error {
-	return addAp(id, title, price, images)
+	return addAp(id, title, price, images, "/map/arenda/kvartiry/almaty/")
+}
+
+func AddApByPath(id int64, title string, price int, images []string, subPath string) error {
+	return addAp(id, title, price, images, subPath)
 }
 
 func CreateNAps(n int) (int, error) {
-	return createNAps(n)
+	return createNAps(n, "/map/arenda/kvartiry/almaty/")
+}
+
+func CreateNApsByPath(n int, subPath string) (int, error) {
+	return createNAps(n, subPath)
 }
 
 func ClearAps() error {
@@ -38,7 +46,7 @@ func clearAps() error {
 	return err
 }
 
-func addAp(id int64, title string, price int, images []string) error {
+func addAp(id int64, title string, price int, images []string, subPath string) error {
 	fmt.Printf("Creating mock ap with title %v and price %v\n", title, price)
 	body := make(map[string]any)
 	body["id"] = id
@@ -48,7 +56,7 @@ func addAp(id int64, title string, price int, images []string) error {
 
 	buffer := new(bytes.Buffer)
 	json.NewEncoder(buffer).Encode(body)
-	request, _ := http.NewRequest("POST", utils.GetApsMockHost()+"/create-ap", buffer)
+	request, _ := http.NewRequest("POST", utils.GetApsMockHost()+"/create-ap?subPath="+subPath, buffer)
 
 	client := http.Client{}
 	client.Timeout = 2 * time.Second
@@ -63,9 +71,10 @@ func addAp(id int64, title string, price int, images []string) error {
 	return err
 }
 
-func createNAps(n int) (int, error) {
+func createNAps(n int, subPath string) (int, error) {
 	fmt.Printf("Creating %v aps\n", n)
-	request, _ := http.NewRequest("POST", utils.GetApsMockHost()+"/create-n-aps?n="+strconv.Itoa(n), nil)
+	request, _ := http.NewRequest(
+		"POST", utils.GetApsMockHost()+"/create-n-aps?n="+strconv.Itoa(n)+"&subPath="+subPath, nil)
 	client := http.Client{}
 	client.Timeout = 2 * time.Second
 	response, err := client.Do(request)
